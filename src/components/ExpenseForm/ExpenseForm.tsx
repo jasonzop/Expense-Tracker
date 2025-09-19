@@ -1,12 +1,18 @@
 // src/components/ExpenseForm/ExpenseForm.tsx
 import React, { useState } from 'react';
 import './ExpenseForm.css';
+import type { Expense, ExpenseCategory } from '../../types';
 
-// Form data interface
+// ADD (right after imports)
+// (Using shared ExpenseCategory from src/types.ts instead of redefining)
+
+/**
+ * Form data interface
+ */
 interface ExpenseFormData {
   description: string;
   amount: string;
-  category: string;
+  category: ExpenseCategory;
   date: string;
 }
 
@@ -16,12 +22,7 @@ interface ExpenseFormData {
  * @param {function} props.onSubmit - Callback function when form is submitted, receives expense data
  */
 interface ExpenseFormProps {
-  onSubmit: (expenseData: {
-    description: string;
-    amount: number;
-    category: string;
-    date: string;
-  }) => void;
+  onSubmit: (expenseData: Omit<Expense, 'id'>) => void;
 }
 
 const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
@@ -37,15 +38,19 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
    * Handles input changes for all form fields using computed property names
    * @param {React.ChangeEvent<HTMLInputElement | HTMLSelectElement>} e - Change event from form inputs
    */
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
-  ): void => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-  };
+const handleInputChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+): void => {
+  const { name, value } = e.target;
+
+  setFormData(prev => ({
+    ...prev,
+    [name]: name === 'category'
+      ? (value as ExpenseCategory) // narrow to union for category
+      : value
+  }));
+};
+
 
   /**
    * Handles form submission with validation and data processing
@@ -127,7 +132,6 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
             <option value="Food">Food</option>
             <option value="Transportation">Transportation</option>
             <option value="Entertainment">Entertainment</option>
-            <option value="Shopping">Shopping</option>
             <option value="Other">Other</option>
           </select>
         </div>

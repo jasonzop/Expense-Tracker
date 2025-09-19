@@ -5,15 +5,7 @@ import ExpenseSummary from './components/ExpenseSummary/ExpenseSummary';
 import ExpenseList from './components/ExpenseList/ExpenseList';
 import ExpenseForm from './components/ExpenseForm/ExpenseForm';
 import './App.css';
-
-// Type for expense data
-interface Expense {
-  id: number;
-  description: string;
-  amount: number;
-  category: string;
-  date: string;
-}
+import type { Expense } from './types'; // ✅ Use shared model from src/types
 
 /**
  * Root application component managing global expense state and component coordination
@@ -33,7 +25,7 @@ function App() {
       id: 2,
       description: "Monthly bus pass",
       amount: 95.00,
-      category: "Transportation", 
+      category: "Transportation",
       date: "2024-01-14"
     }
   ]);
@@ -51,27 +43,32 @@ function App() {
     setExpenses(prev => [...prev, newExpense]);
   };
 
+  // Optional: delete handler (can be forwarded to ExpenseList → ExpenseCard)
+  const handleDeleteExpense = (id: number): void => {
+    setExpenses(prev => prev.filter(e => e.id !== id));
+  };
+
   const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   return (
     <div className="App">
       <div className="app-container">
-        <Header 
-          title="Expense Tracker" 
-          subtitle="Manage your spending with confidence" 
+        <Header
+          title="Expense Tracker"
+          subtitle="Manage your spending with confidence"
         />
-        
+
         <main className="app-main">
-          <ExpenseSummary 
+          <ExpenseSummary
             totalAmount={totalAmount}
             expenseCount={expenses.length}
             period="This Month"
           />
-          
+
           <ExpenseForm onSubmit={handleAddExpense} />
-          
+
           {/* FIXED: Pass expenses directly, not as initialExpenses */}
-          <ExpenseList expenses={expenses} />
+          <ExpenseList expenses={expenses} onDelete={handleDeleteExpense} />
         </main>
       </div>
     </div>

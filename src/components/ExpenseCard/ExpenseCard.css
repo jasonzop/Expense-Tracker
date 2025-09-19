@@ -49,3 +49,30 @@
   font-weight: bold;
   color: #059669;
 }
+
+/* Highlighted state */
+.expense-card.highlighted {
+  border-left: 4px solid #F59E0B; /* Amber color */
+  background: #FFFBEB; /* Light yellow background */
+}
+
+.expense-actions {
+  margin-top: 8px;
+  text-align: right;
+}
+
+.expense-actions .danger {
+  background: #DC2626;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.expense-actions .danger:hover {
+  background: #B91C1C;
+}
