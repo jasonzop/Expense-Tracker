@@ -1,46 +1,44 @@
-// src/components/ExpenseSummary/ExpenseSummary.tsx
-import React from 'react';
-import './ExpenseSummary.css';
+import React from "react";
 
-/**
- * Displays summary statistics for expenses including total amount and count
- * @param {Object} props - Component props
- * @param {number} props.totalAmount - Sum of all expense amounts in dollars
- * @param {number} props.expenseCount - Total number of expense entries
- * @param {string} props.period - Time period being summarized (e.g., "This Month", "All Time")
- */
-interface ExpenseSummaryProps {
+type ExpenseSummaryProps = {
   totalAmount: number;
   expenseCount: number;
-  period?: string;
-}
+  period: string; // e.g., "This Month"
+};
 
-const ExpenseSummary: React.FC<ExpenseSummaryProps> = ({ 
-  totalAmount, 
-  expenseCount, 
-  period = "All Time" 
+const ExpenseSummary: React.FC<ExpenseSummaryProps> = ({
+  totalAmount,
+  expenseCount,
+  period,
 }) => {
-  const formattedTotal = new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD'
-  }).format(totalAmount);
-
   return (
-    <section className="expense-summary">
-      <div className="summary-header">
-        <h2>Expense Summary</h2>
-        <span className="summary-period">{period}</span>
+    <section className="bg-white rounded-lg p-6 mb-8 shadow-sm border border-gray-200">
+      {/* Header row */}
+      <div className="flex flex-col md:flex-row md:justify-between md:items-center mb-5 pb-4 border-b border-gray-200 gap-3 md:gap-0 text-center md:text-left">
+        <h2 className="text-2xl font-bold text-gray-900 m-0">Summary</h2>
+        <span className="inline-block bg-gray-100 text-gray-500 px-3 py-1.5 rounded-full text-sm font-medium">
+          {period}
+        </span>
       </div>
-      
-      <div className="summary-stats">
-        <div className="stat-item">
-          <span className="stat-label">Total Spent</span>
-          <span className="stat-value">{formattedTotal}</span>
+
+      {/* Stats */}
+      <div className="flex flex-col md:flex-row gap-5 md:gap-8">
+        <div className="flex flex-col items-center flex-1">
+          <span className="text-sm font-medium text-gray-500 mb-2 text-center">
+            Total Expenses
+          </span>
+          <span className="text-3xl font-bold text-gray-900 text-center">
+            {expenseCount}
+          </span>
         </div>
-        
-        <div className="stat-item">
-          <span className="stat-label">Expenses</span>
-          <span className="stat-value">{expenseCount}</span>
+
+        <div className="flex flex-col items-center flex-1">
+          <span className="text-sm font-medium text-gray-500 mb-2 text-center">
+            Total Amount
+          </span>
+          <span className="text-3xl font-bold text-gray-900 text-center">
+            ${totalAmount.toFixed(2)}
+          </span>
         </div>
       </div>
     </section>
