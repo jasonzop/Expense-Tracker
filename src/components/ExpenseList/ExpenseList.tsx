@@ -1,21 +1,21 @@
 import React, { useMemo, useState } from "react";
 import ExpenseCard from "../ExpenseCard/ExpenseCard";
 
-type Expense = {
+export type Expense = {
   id: number;
   description: string;
   amount: number;
   category: string;
   date: string;
-  receiptUrl?: string; // NEW: optional receipt URL
+  receiptUrl?: string;
 };
 
-type ExpenseListProps = {
+type Props = {
   expenses: Expense[];
   onDelete?: (id: number) => void;
 };
 
-const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
+const ExpenseList: React.FC<Props> = ({ expenses, onDelete }) => {
   const [filter, setFilter] = useState<string>("All");
 
   const filtered = useMemo(() => {
@@ -30,10 +30,8 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
 
   return (
     <section className="bg-white rounded-lg p-6 mb-8 shadow-sm border border-gray-200">
-      {/* Title */}
       <h2 className="text-2xl font-bold text-gray-900 mb-6">Expenses</h2>
 
-      {/* Summary / Filter bar */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h3 className="text-xl font-bold text-blue-500 m-0">Summary</h3>
 
@@ -65,7 +63,6 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
         </div>
       </div>
 
-      {/* Empty state */}
       {filtered.length === 0 ? (
         <div className="text-center py-10 px-5 text-gray-500">
           <p className="text-base m-0">No expenses to show.</p>
@@ -73,16 +70,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
       ) : (
         <div className="space-y-3">
           {filtered.map((e) => (
-            <ExpenseCard
-              key={e.id}
-              id={e.id}
-              description={e.description}
-              amount={e.amount}
-              category={e.category}
-              date={e.date}
-              receiptUrl={e.receiptUrl} // NEW: pass through
-              onDelete={onDelete}
-            />
+            <ExpenseCard key={e.id} {...e} onDelete={onDelete} />
           ))}
         </div>
       )}
