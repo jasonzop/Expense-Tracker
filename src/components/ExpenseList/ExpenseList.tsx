@@ -7,6 +7,7 @@ type Expense = {
   amount: number;
   category: string;
   date: string;
+  receiptUrl?: string; // NEW: optional receipt URL
 };
 
 type ExpenseListProps = {
@@ -19,7 +20,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
 
   const filtered = useMemo(() => {
     if (filter === "All") return expenses;
-    return expenses.filter(e => e.category === filter);
+    return expenses.filter((e) => e.category === filter);
   }, [expenses, filter]);
 
   const total = useMemo(
@@ -34,9 +35,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
 
       {/* Summary / Filter bar */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
-        <h3 className="text-xl font-bold text-blue-500 m-0">
-          Summary
-        </h3>
+        <h3 className="text-xl font-bold text-blue-500 m-0">Summary</h3>
 
         <div className="flex items-center gap-3">
           <label htmlFor="filter" className="text-sm font-medium text-gray-700">
@@ -81,6 +80,7 @@ const ExpenseList: React.FC<ExpenseListProps> = ({ expenses, onDelete }) => {
               amount={e.amount}
               category={e.category}
               date={e.date}
+              receiptUrl={e.receiptUrl} // NEW: pass through
               onDelete={onDelete}
             />
           ))}

@@ -13,6 +13,7 @@ interface ExpenseFormProps {
     amount: number;
     category: string;
     date: string;
+    receiptUrl?: string; // NEW
   }) => void;
 }
 
@@ -24,7 +25,14 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
     date: new Date().toISOString().split('T')[0],
   });
 
-  const [errors, setErrors] = useState<{ [K in keyof ExpenseFormData]?: string }>({});
+  // NEW: receipt + uploading state
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
+
+  // NEW: extend errors to include receipt
+  const [errors, setErrors] = useState<
+    { [K in keyof ExpenseFormData]?: string } & { receipt?: string }
+  >({});
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -44,25 +52,69 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
     return Object.keys(next).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // NEW: file input change handler (type + size checks)
+  const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0] || null;
+    if (!f) { setReceipt(null); setErrors(prev => ({ ...prev, receipt: undefined })); return; }
+    if (!f.type.startsWith('image/')) {
+      setReceipt(null);
+      setErrors(prev => ({ ...prev, receipt: 'Please select an image file (PNG/JPG/GIF).' }));
+      return;
+    }
+    if (f.size > 5 * 1024 * 1024) {
+      setReceipt(null);
+      setErrors(prev => ({ ...prev, receipt: 'File must be smaller than 5MB.' }));
+      return;
+    }
+    setReceipt(f);
+    setErrors(prev => ({ ...prev, receipt: undefined }));
+  };
+
+  // CHANGED: make submit async, upload receipt first
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    onSubmit({
-      description: formData.description.trim(),
-      amount: Number(formData.amount),
-      category: formData.category,
-      date: formData.date,
-    });
+    setUploading(true);
+    let receiptUrl: string | undefined;
 
-    // reset
-    setFormData({
-      description: '',
-      amount: '',
-      category: 'Food',
-      date: new Date().toISOString().split('T')[0],
-    });
-    setErrors({});
+    try {
+      // Upload to our Express API if a file is chosen
+      if (receipt) {
+        const fd = new FormData();
+        fd.append('receipt', receipt);
+        const res = await fetch('/api/upload-receipt', { method: 'POST', body: fd });
+        const data = await res.json();
+        if (!res.ok || !data?.url) {
+          throw new Error(data?.error || 'Failed to upload receipt');
+        }
+        receiptUrl = data.url; // S3 (LocalStack) URL
+      }
+
+      onSubmit({
+        description: formData.description.trim(),
+        amount: Number(formData.amount),
+        category: formData.category,
+        date: formData.date,
+        receiptUrl, // NEW
+      });
+
+      // reset
+      setFormData({
+        description: '',
+        amount: '',
+        category: 'Food',
+        date: new Date().toISOString().split('T')[0],
+      });
+      setErrors({});
+      setReceipt(null);
+      const inp = document.getElementById('receipt-input') as HTMLInputElement | null;
+      if (inp) inp.value = '';
+    } catch (err: any) {
+      setErrors(prev => ({ ...prev, receipt: err?.message || 'Failed to upload receipt' }));
+    } finally {
+      setUploading(false);
+    }
   };
 
   const inputBase =
@@ -157,15 +209,40 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
         </div>
       </div>
 
+      {/* NEW: Receipt file input */}
+      <div className="mt-4">
+        <label htmlFor="receipt-input" className="block text-sm font-medium text-gray-700 mb-1.5">
+          Receipt (optional)
+        </label>
+        <input
+          id="receipt-input"
+          type="file"
+          accept="image/*"
+          onChange={handleReceiptChange}
+          disabled={uploading}
+          className="block w-full text-sm text-gray-900 border border-gray-300 rounded-md cursor-pointer bg-gray-50"
+        />
+        {receipt && (
+          <p className="mt-2 text-xs text-gray-600">
+            Selected: <span className="font-medium">{receipt.name}</span> ({(receipt.size / 1024).toFixed(1)} KB)
+          </p>
+        )}
+        {errors.receipt && (
+          <p className="text-red-500 text-xs mt-1">{errors.receipt}</p>
+        )}
+        <p className="mt-1 text-xs text-gray-500">PNG/JPG/GIF up to 5MB.</p>
+      </div>
+
       <div className="flex gap-3 mt-6">
         <button
           type="submit"
+          disabled={uploading}
           className="inline-flex items-center justify-center min-w-20 px-4 py-2.5 rounded-md text-sm font-medium
                      border bg-blue-500 text-white border-blue-500
                      hover:bg-blue-600 hover:border-blue-600 hover:-translate-y-0.5
-                     transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                     transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-60"
         >
-          Add Expense
+          {uploading ? 'Uploading Receipt…' : 'Add Expense'}
         </button>
 
         <button
@@ -178,6 +255,9 @@ const ExpenseForm: React.FC<ExpenseFormProps> = ({ onSubmit }) => {
               date: new Date().toISOString().split('T')[0],
             });
             setErrors({});
+            setReceipt(null);
+            const inp = document.getElementById('receipt-input') as HTMLInputElement | null;
+            if (inp) inp.value = '';
           }}
           className="inline-flex items-center justify-center min-w-20 px-4 py-2.5 rounded-md text-sm font-medium
                      border bg-white text-gray-700 border-gray-300

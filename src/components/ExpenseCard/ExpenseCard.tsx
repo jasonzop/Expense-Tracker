@@ -7,6 +7,7 @@ type ExpenseCardProps = {
   amount: number;
   category: string;
   date: string;
+  receiptUrl?: string; // ✅ NEW optional receipt link
   onDelete?: (id: number) => void;
 };
 
@@ -16,6 +17,7 @@ const ExpenseCard: React.FC<ExpenseCardProps> = ({
   amount,
   category,
   date,
+  receiptUrl, // ✅ NEW
   onDelete,
 }) => {
   const formattedDate = new Date(date).toLocaleDateString();
@@ -42,6 +44,18 @@ const ExpenseCard: React.FC<ExpenseCardProps> = ({
       <div className="space-y-2">
         <h3 className="text-base font-medium text-gray-900">{description}</h3>
         <p className="text-lg font-bold text-green-600">{formattedAmount}</p>
+
+        {/* ✅ Show receipt link if present */}
+        {receiptUrl && (
+          <a
+            href={receiptUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 hover:underline text-sm"
+          >
+            View Receipt
+          </a>
+        )}
       </div>
 
       {/* Optional delete button */}
