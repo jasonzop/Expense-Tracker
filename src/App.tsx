@@ -4,7 +4,6 @@ import Header from './components/Header/Header';
 import ExpenseSummary from './components/ExpenseSummary/ExpenseSummary';
 import ExpenseList from './components/ExpenseList/ExpenseList';
 import ExpenseForm from './components/ExpenseForm/ExpenseForm';
-import './App.css';
 import type { Expense } from './types'; // ✅ Use shared model from src/types
 
 /**
@@ -51,28 +50,27 @@ function App() {
   const totalAmount = expenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   return (
-    <div className="App">
-      <div className="app-container">
-        <Header
-          title="Expense Tracker"
-          subtitle="Manage your spending with confidence"
+  <div className="min-h-screen bg-slate-50">
+    <div className="max-w-6xl mx-auto p-5">
+      <Header
+        title="Expense Tracker"
+        subtitle="Manage your spending with confidence"
+      />
+
+      <main className="space-y-8">
+        <ExpenseSummary
+          totalAmount={totalAmount}
+          expenseCount={expenses.length}
+          period="This Month"
         />
 
-        <main className="app-main">
-          <ExpenseSummary
-            totalAmount={totalAmount}
-            expenseCount={expenses.length}
-            period="This Month"
-          />
+        <ExpenseForm onSubmit={handleAddExpense} />
 
-          <ExpenseForm onSubmit={handleAddExpense} />
-
-          {/* FIXED: Pass expenses directly, not as initialExpenses */}
-          <ExpenseList expenses={expenses} onDelete={handleDeleteExpense} />
-        </main>
-      </div>
+        <ExpenseList expenses={expenses} onDelete={handleDeleteExpense} />
+      </main>
     </div>
-  );
+  </div>
+);
 }
 
 export default App;
